@@ -6,6 +6,7 @@ on:
   workflow_dispatch:
 
 env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
   REGISTRY_ID: d7flh3elameeldk1bh7r
   IMAGE_NAME: book-inventory
   CONTAINER_NAME: book-inventory
@@ -18,7 +19,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install Yandex Cloud CLI
         run: |
