@@ -1,0 +1,76 @@
+name: Deploy to Yandex Serverless Container
+
+on:
+  push:
+    branches: ["master"]
+  workflow_dispatch:
+
+env:
+  REGISTRY_ID: d7flh3elameeldk1bh7r
+  IMAGE_NAME: book-inventory
+  CONTAINER_NAME: book-inventory
+  FOLDER_ID: b1g0aqk09fto5n221cos
+  SERVICE_ACCOUNT_ID: ajekqm793gd4vc8jqa3q
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Yandex Cloud CLI
+        run: |
+          curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash -s -- -i /home/runner/yandex-cloud -n
+          echo "/home/runner/yandex-cloud/bin" >> "$GITHUB_PATH"
+
+      - name: Configure Yandex Cloud auth
+        env:
+          YC_SERVICE_ACCOUNT_KEY_JSON: ${{ secrets.YC_SERVICE_ACCOUNT_KEY_JSON }}
+          YC_CLOUD_ID: ${{ secrets.YC_CLOUD_ID }}
+        run: |
+          test -n "$YC_SERVICE_ACCOUNT_KEY_JSON"
+          test -n "$YC_CLOUD_ID"
+          echo "$YC_SERVICE_ACCOUNT_KEY_JSON" > key.json
+          yc config profile create ci
+          yc config set service-account-key key.json
+          yc config set cloud-id "$YC_CLOUD_ID"
+          yc config set folder-id "$FOLDER_ID"
+
+      - name: Configure Docker for Yandex Container Registry
+        run: yc container registry configure-docker
+
+      - name: Build and push image
+        run: |
+          IMAGE="cr.yandex/$REGISTRY_ID/$IMAGE_NAME:${GITHUB_SHA}"
+          IMAGE_LATEST="cr.yandex/$REGISTRY_ID/$IMAGE_NAME:latest"
+          docker build -t "$IMAGE" -t "$IMAGE_LATEST" .
+          docker push "$IMAGE"
+          docker push "$IMAGE_LATEST"
+          echo "IMAGE=$IMAGE" >> "$GITHUB_ENV"
+
+      - name: Deploy new revision
+        env:
+          DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
+          DJANGO_ALLOWED_HOSTS: ${{ secrets.DJANGO_ALLOWED_HOSTS }}
+          DJANGO_CSRF_TRUSTED_ORIGINS: ${{ secrets.DJANGO_CSRF_TRUSTED_ORIGINS }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          test -n "$DJANGO_SECRET_KEY"
+          test -n "$DJANGO_ALLOWED_HOSTS"
+          test -n "$DJANGO_CSRF_TRUSTED_ORIGINS"
+          yc serverless container revision deploy \
+            --container-name "$CONTAINER_NAME" \
+            --folder-id "$FOLDER_ID" \
+            --image "$IMAGE" \
+            --cores 1 \
+            --memory 512MB \
+            --concurrency 10 \
+            --execution-timeout 60s \
+            --service-account-id "$SERVICE_ACCOUNT_ID" \
+            --environment DJANGO_DEBUG=False \
+            --environment DJANGO_SECRET_KEY="$DJANGO_SECRET_KEY" \
+            --environment DJANGO_ALLOWED_HOSTS="$DJANGO_ALLOWED_HOSTS" \
+            --environment DJANGO_CSRF_TRUSTED_ORIGINS="$DJANGO_CSRF_TRUSTED_ORIGINS" \
+            --environment DATABASE_URL="$DATABASE_URL"

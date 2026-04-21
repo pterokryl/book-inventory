@@ -1,0 +1,10 @@
+.git
+.venv
+__pycache__
+*.pyc
+.env
+media
+staticfiles
+.cursor
+agent-transcripts
+terminals
