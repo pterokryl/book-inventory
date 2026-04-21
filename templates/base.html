@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>{% block title %}Учет книг{% endblock %}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 24px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 16px; }
+        .btn { display: inline-block; padding: 8px 12px; border: 1px solid #333; text-decoration: none; color: #111; }
+        .filters-panel { border: 1px solid #ddd; border-radius: 6px; padding: 12px; margin-bottom: 16px; background: #fafafa; }
+        .filters-summary { cursor: pointer; font-weight: 700; margin-bottom: 10px; }
+        .filters-title { margin: 0 0 10px; font-size: 16px; }
+        .filters { display: grid; grid-template-columns: repeat(4, minmax(160px, 1fr)); gap: 10px; }
+        .filter-field { display: flex; flex-direction: column; gap: 4px; }
+        .form-field { display: flex; flex-direction: column; gap: 4px; }
+        .form-grid { display: grid; grid-template-columns: repeat(2, minmax(220px, 1fr)); gap: 12px; margin-bottom: 14px; }
+        .form-field-full { grid-column: 1 / -1; }
+        .filter-label { font-size: 13px; font-weight: 700; color: #333; }
+        .filter-input { padding: 7px 8px; border: 1px solid #bbb; border-radius: 4px; font-size: 14px; }
+        .errorlist { margin: 4px 0 0; color: #b00020; }
+        .filters-actions { display: flex; gap: 8px; align-items: center; margin-top: 12px; }
+        .btn-secondary { background: #fff; }
+        .table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .table { width: 100%; border-collapse: collapse; min-width: 760px; }
+        .table th, .table td { border: 1px solid #ddd; padding: 8px; vertical-align: top; }
+        .table th { background: #f5f5f5; text-align: left; }
+        .actions { white-space: nowrap; }
+        .pagination { margin-top: 16px; display: flex; gap: 8px; align-items: center; }
+        img.thumb { max-height: 80px; }
+
+        @media (max-width: 768px) {
+            body { margin: 12px; }
+            .header { flex-direction: column; align-items: stretch; }
+            .btn { text-align: center; }
+            .filters { grid-template-columns: 1fr; }
+            .filters-actions { flex-direction: column; align-items: stretch; }
+            .form-grid { grid-template-columns: 1fr; }
+            .pagination { flex-wrap: wrap; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    {% block content %}{% endblock %}
+</div>
+</body>
+</html>

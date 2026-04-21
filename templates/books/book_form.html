@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}Карточка книги{% endblock %}
+{% block content %}
+<div class="header">
+    <h1>Карточка книги</h1>
+    <a class="btn" href="{% url 'books:list' %}">К списку</a>
+</div>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="form-grid">
+        <div class="form-field">
+            <label class="filter-label" for="{{ form.author_choice.id_for_label }}">{{ form.author_choice.label }}</label>
+            {{ form.author_choice }}
+            {{ form.author_custom }}
+            {{ form.author_choice.errors }}
+            {{ form.author_custom.errors }}
+        </div>
+
+        <div class="form-field">
+            <label class="filter-label" for="{{ form.title.id_for_label }}">{{ form.title.label }}</label>
+            {{ form.title }}
+            {{ form.title.errors }}
+        </div>
+
+        <div class="form-field">
+            <label class="filter-label" for="{{ form.publication_year.id_for_label }}">{{ form.publication_year.label }}</label>
+            {{ form.publication_year }}
+            {{ form.publication_year.errors }}
+        </div>
+
+        <div class="form-field">
+            <label class="filter-label" for="{{ form.room_choice.id_for_label }}">{{ form.room_choice.label }}</label>
+            {{ form.room_choice }}
+            {{ form.room_custom }}
+            {{ form.room_choice.errors }}
+            {{ form.room_custom.errors }}
+        </div>
+
+        <div class="form-field">
+            <label class="filter-label" for="{{ form.cabinet_choice.id_for_label }}">{{ form.cabinet_choice.label }}</label>
+            {{ form.cabinet_choice }}
+            {{ form.cabinet_custom }}
+            {{ form.cabinet_choice.errors }}
+            {{ form.cabinet_custom.errors }}
+        </div>
+
+        <div class="form-field">
+            <label class="filter-label" for="{{ form.shelf_choice.id_for_label }}">{{ form.shelf_choice.label }}</label>
+            {{ form.shelf_choice }}
+            {{ form.shelf_custom }}
+            {{ form.shelf_choice.errors }}
+            {{ form.shelf_custom.errors }}
+        </div>
+
+        <div class="form-field form-field-full">
+            <label class="filter-label" for="{{ form.photo.id_for_label }}">{{ form.photo.label }}</label>
+            {{ form.photo }}
+            {{ form.photo.errors }}
+        </div>
+    </div>
+
+    <button class="btn" type="submit">Сохранить</button>
+</form>
+
+{{ form.author }}{{ form.room }}{{ form.cabinet }}{{ form.shelf }}
+
+<script>
+    (function () {
+        const OTHER = "__other__";
+        const pairs = [
+            ["id_author_choice", "id_author_custom"],
+            ["id_room_choice", "id_room_custom"],
+            ["id_cabinet_choice", "id_cabinet_custom"],
+            ["id_shelf_choice", "id_shelf_custom"]
+        ];
+
+        function toggleInput(select, input) {
+            if (!select || !input) return;
+            const show = select.value === OTHER;
+            input.style.display = show ? "block" : "none";
+            input.required = show;
+            if (!show) input.value = "";
+        }
+
+        pairs.forEach(([selectId, inputId]) => {
+            const select = document.getElementById(selectId);
+            const input = document.getElementById(inputId);
+            toggleInput(select, input);
+            if (select) {
+                select.addEventListener("change", () => toggleInput(select, input));
+            }
+        });
+    })();
+</script>
+{% endblock %}
