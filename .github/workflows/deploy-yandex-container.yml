@@ -33,7 +33,11 @@ jobs:
         run: |
           test -n "$YC_SERVICE_ACCOUNT_KEY_JSON"
           test -n "$YC_CLOUD_ID"
-          echo "$YC_SERVICE_ACCOUNT_KEY_JSON" > key.json
+          echo "$YC_SERVICE_ACCOUNT_KEY_JSON" > key.raw.json
+          jq '{id, service_account_id, private_key, key_algorithm, public_key}' key.raw.json > key.json
+          test "$(jq -r '.id // empty' key.json)" != ""
+          test "$(jq -r '.service_account_id // empty' key.json)" != ""
+          test "$(jq -r '.private_key // empty' key.json)" != ""
           yc config profile create ci
           yc config set service-account-key key.json
           yc config set cloud-id "$YC_CLOUD_ID"
