@@ -7,7 +7,6 @@ on:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
-  REGISTRY_ID: d7flh3elameeldk1bh7r
   IMAGE_NAME: book-inventory
   CONTAINER_NAME: book-inventory
   FOLDER_ID: b1g0aqk09fto5n221cos
@@ -42,6 +41,24 @@ jobs:
           yc config set service-account-key key.json
           yc config set cloud-id "$YC_CLOUD_ID"
           yc config set folder-id "$FOLDER_ID"
+
+      - name: Verify Container Registry
+        env:
+          YC_REGISTRY_ID: ${{ secrets.YC_REGISTRY_ID }}
+        run: |
+          if [ -z "$YC_REGISTRY_ID" ]; then
+            echo "Secret YC_REGISTRY_ID is not set."
+            echo "Create one in GitHub Secrets with ID from:"
+            echo "  yc container registry list --folder-id $FOLDER_ID"
+            exit 1
+          fi
+          if ! yc container registry get "$YC_REGISTRY_ID" --folder-id "$FOLDER_ID" >/dev/null 2>&1; then
+            echo "Registry '$YC_REGISTRY_ID' not found in folder $FOLDER_ID"
+            echo "Available registries:"
+            yc container registry list --folder-id "$FOLDER_ID"
+            exit 1
+          fi
+          echo "REGISTRY_ID=$YC_REGISTRY_ID" >> "$GITHUB_ENV"
 
       - name: Configure Docker for Yandex Container Registry
         run: yc container registry configure-docker
