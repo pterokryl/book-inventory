@@ -2,7 +2,8 @@ FROM python:3.14-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PORT=8000
+    DJANGO_SECRET_KEY=build-time-only \
+    DJANGO_DEBUG=False
 
 WORKDIR /app
 
@@ -16,8 +17,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
+RUN python manage.py collectstatic --noinput
+
 RUN chmod +x /app/entrypoint.sh
 
-EXPOSE 8000
+EXPOSE 8080
 
 CMD ["/app/entrypoint.sh"]

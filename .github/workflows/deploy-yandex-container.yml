@@ -87,12 +87,14 @@ jobs:
             --folder-id "$FOLDER_ID" \
             --image "$IMAGE" \
             --cores 1 \
-            --memory 512MB \
-            --concurrency 10 \
-            --execution-timeout 60s \
+            --memory 1024MB \
+            --concurrency 4 \
+            --execution-timeout 120s \
             --service-account-id "$SERVICE_ACCOUNT_ID" \
             --environment DJANGO_DEBUG=False \
             --environment DJANGO_SECRET_KEY="$DJANGO_SECRET_KEY" \
             --environment DJANGO_ALLOWED_HOSTS="$DJANGO_ALLOWED_HOSTS" \
             --environment DJANGO_CSRF_TRUSTED_ORIGINS="$DJANGO_CSRF_TRUSTED_ORIGINS" \
+            --environment DJANGO_SECURE_SSL_REDIRECT=False \
+            --environment DJANGO_SQLITE_PATH=/tmp/db.sqlite3 \
             --environment DATABASE_URL="$DATABASE_URL"
