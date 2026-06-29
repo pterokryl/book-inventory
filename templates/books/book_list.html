@@ -74,7 +74,13 @@
             <td>{{ book.shelf.name }}</td>
             <td>
                 {% if book.photo %}
-                    <img class="thumb" src="{{ book.photo.url }}" alt="Фото {{ book.title }}">
+                    <img
+                        class="thumb js-photo-preview"
+                        src="{{ book.photo.url }}"
+                        data-full-src="{{ book.photo.url }}"
+                        alt="Фото {{ book.title }}"
+                        title="Нажмите, чтобы открыть"
+                    >
                 {% else %}
                     —
                 {% endif %}
@@ -97,6 +103,56 @@
         <a href="?page={{ page_obj.next_page_number }}&{{ query_params }}">Вперед</a>
     {% endif %}
 </div>
+
+<div id="photo-lightbox" class="photo-lightbox" hidden>
+    <button type="button" class="photo-lightbox-close" aria-label="Закрыть">&times;</button>
+    <img class="photo-lightbox-image" src="" alt="">
+</div>
+
+<script>
+    (function () {
+        const lightbox = document.getElementById("photo-lightbox");
+        const lightboxImage = lightbox ? lightbox.querySelector(".photo-lightbox-image") : null;
+        const closeButton = lightbox ? lightbox.querySelector(".photo-lightbox-close") : null;
+
+        function openLightbox(src, alt) {
+            if (!lightbox || !lightboxImage) return;
+            lightboxImage.src = src;
+            lightboxImage.alt = alt || "Фото книги";
+            lightbox.hidden = false;
+            document.body.style.overflow = "hidden";
+        }
+
+        function closeLightbox() {
+            if (!lightbox || !lightboxImage) return;
+            lightbox.hidden = true;
+            lightboxImage.src = "";
+            document.body.style.overflow = "";
+        }
+
+        document.querySelectorAll(".js-photo-preview").forEach((thumb) => {
+            thumb.addEventListener("click", () => {
+                openLightbox(thumb.dataset.fullSrc || thumb.src, thumb.alt);
+            });
+        });
+
+        if (closeButton) {
+            closeButton.addEventListener("click", closeLightbox);
+        }
+        if (lightbox) {
+            lightbox.addEventListener("click", (event) => {
+                if (event.target === lightbox) {
+                    closeLightbox();
+                }
+            });
+        }
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "Escape" && lightbox && !lightbox.hidden) {
+                closeLightbox();
+            }
+        });
+    })();
+</script>
 
 <script>
     (function () {
