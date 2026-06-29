@@ -104,4 +104,33 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = Path(os.getenv("DJANGO_MEDIA_ROOT", str(BASE_DIR / "media")))
 SERVE_MEDIA = os.getenv("DJANGO_SERVE_MEDIA", "False").lower() == "true"
 
+AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME", "").strip()
+USE_S3_MEDIA = bool(AWS_STORAGE_BUCKET_NAME)
+
+if USE_S3_MEDIA:
+    INSTALLED_APPS.append("storages")
+    AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
+    AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
+    AWS_S3_ENDPOINT_URL = os.getenv("AWS_S3_ENDPOINT_URL", "https://storage.yandexcloud.net")
+    AWS_S3_REGION_NAME = os.getenv("AWS_S3_REGION_NAME", "ru-central1")
+    AWS_DEFAULT_ACL = "public-read"
+    AWS_QUERYSTRING_AUTH = False
+    AWS_S3_FILE_OVERWRITE = False
+
+    STORAGES["default"] = {
+        "BACKEND": "storages.backends.s3.S3Storage",
+        "OPTIONS": {
+            "bucket_name": AWS_STORAGE_BUCKET_NAME,
+            "location": "media",
+            "endpoint_url": AWS_S3_ENDPOINT_URL,
+            "default_acl": "public-read",
+            "querystring_auth": False,
+        },
+    }
+    MEDIA_URL = os.getenv(
+        "MEDIA_URL",
+        f"{AWS_S3_ENDPOINT_URL.rstrip('/')}/{AWS_STORAGE_BUCKET_NAME}/media/",
+    )
+    SERVE_MEDIA = False
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
