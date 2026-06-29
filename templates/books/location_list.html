@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Помещения{% endblock %}
+{% block content %}
+<div class="header">
+    <h1>Помещения, шкафы и полки</h1>
+    <div class="header-actions">
+        <a class="btn btn-secondary" href="{% url 'books:list' %}">К списку книг</a>
+        <a class="btn" href="{% url 'books:room_create' %}">+ Помещение</a>
+    </div>
+</div>
+
+{% if rooms %}
+    {% for room in rooms %}
+        <section class="location-block">
+            <div class="location-header">
+                <h2>{{ room.name }}</h2>
+                <div class="location-actions">
+                    <a href="{% url 'books:room_edit' room.pk %}">Редактировать</a>
+                    <a href="{% url 'books:cabinet_create' %}?room={{ room.pk }}">+ Шкаф</a>
+                </div>
+            </div>
+
+            {% for cabinet in room.cabinets.all %}
+                <div class="location-subblock">
+                    <div class="location-header">
+                        <h3>Шкаф: {{ cabinet.name }}</h3>
+                        <div class="location-actions">
+                            <a href="{% url 'books:cabinet_edit' cabinet.pk %}">Редактировать</a>
+                            <a href="{% url 'books:shelf_create' %}?cabinet={{ cabinet.pk }}&room={{ room.pk }}">+ Полка</a>
+                        </div>
+                    </div>
+                    <ul class="location-list">
+                        {% for shelf in cabinet.shelves.all %}
+                            <li>
+                                Полка: {{ shelf.name }}
+                                <a href="{% url 'books:shelf_edit' shelf.pk %}">Редактировать</a>
+                            </li>
+                        {% empty %}
+                            <li class="muted">Полок пока нет.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% empty %}
+                <p class="muted">Шкафов пока нет.</p>
+            {% endfor %}
+        </section>
+    {% endfor %}
+{% else %}
+    <p>Помещений пока нет. <a href="{% url 'books:room_create' %}">Добавьте первое помещение</a>.</p>
+{% endif %}
+{% endblock %}

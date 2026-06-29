@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="header">
+    <h1>{{ title }}</h1>
+    <a class="btn btn-secondary" href="{% url 'books:locations' %}">Назад</a>
+</div>
+
+<form method="post">
+    {% csrf_token %}
+    {% for field in form %}
+        <div class="form-field">
+            <label class="filter-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {{ field.errors }}
+        </div>
+    {% endfor %}
+    <button class="btn" type="submit">Сохранить</button>
+</form>
+{% endblock %}

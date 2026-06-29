@@ -6,6 +6,8 @@
     <a class="btn" href="{% url 'books:list' %}">К списку</a>
 </div>
 
+<p class="hint">Сначала добавьте помещения, шкафы и полки на странице <a href="{% url 'books:locations' %}">расположения</a>.</p>
+
 <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
     <div class="form-grid">
@@ -30,27 +32,21 @@
         </div>
 
         <div class="form-field">
-            <label class="filter-label" for="{{ form.room_choice.id_for_label }}">{{ form.room_choice.label }}</label>
-            {{ form.room_choice }}
-            {{ form.room_custom }}
-            {{ form.room_choice.errors }}
-            {{ form.room_custom.errors }}
+            <label class="filter-label" for="{{ form.room.id_for_label }}">{{ form.room.label }}</label>
+            {{ form.room }}
+            {{ form.room.errors }}
         </div>
 
         <div class="form-field">
-            <label class="filter-label" for="{{ form.cabinet_choice.id_for_label }}">{{ form.cabinet_choice.label }}</label>
-            {{ form.cabinet_choice }}
-            {{ form.cabinet_custom }}
-            {{ form.cabinet_choice.errors }}
-            {{ form.cabinet_custom.errors }}
+            <label class="filter-label" for="{{ form.cabinet.id_for_label }}">{{ form.cabinet.label }}</label>
+            {{ form.cabinet }}
+            {{ form.cabinet.errors }}
         </div>
 
         <div class="form-field">
-            <label class="filter-label" for="{{ form.shelf_choice.id_for_label }}">{{ form.shelf_choice.label }}</label>
-            {{ form.shelf_choice }}
-            {{ form.shelf_custom }}
-            {{ form.shelf_choice.errors }}
-            {{ form.shelf_custom.errors }}
+            <label class="filter-label" for="{{ form.shelf.id_for_label }}">{{ form.shelf.label }}</label>
+            {{ form.shelf }}
+            {{ form.shelf.errors }}
         </div>
 
         <div class="form-field form-field-full">
@@ -63,34 +59,93 @@
     <button class="btn" type="submit">Сохранить</button>
 </form>
 
-{{ form.author }}{{ form.room }}{{ form.cabinet }}{{ form.shelf }}
+{{ form.author }}
 
 <script>
     (function () {
         const OTHER = "__other__";
-        const pairs = [
-            ["id_author_choice", "id_author_custom"],
-            ["id_room_choice", "id_room_custom"],
-            ["id_cabinet_choice", "id_cabinet_custom"],
-            ["id_shelf_choice", "id_shelf_custom"]
-        ];
+        const authorChoice = document.getElementById("id_author_choice");
+        const authorCustom = document.getElementById("id_author_custom");
+        const roomSelect = document.getElementById("id_room");
+        const cabinetSelect = document.getElementById("id_cabinet");
+        const shelfSelect = document.getElementById("id_shelf");
 
-        function toggleInput(select, input) {
-            if (!select || !input) return;
-            const show = select.value === OTHER;
-            input.style.display = show ? "block" : "none";
-            input.required = show;
-            if (!show) input.value = "";
+        function toggleAuthorCustom() {
+            if (!authorChoice || !authorCustom) return;
+            const show = authorChoice.value === OTHER;
+            authorCustom.style.display = show ? "block" : "none";
+            authorCustom.required = show;
+            if (!show) authorCustom.value = "";
         }
 
-        pairs.forEach(([selectId, inputId]) => {
-            const select = document.getElementById(selectId);
-            const input = document.getElementById(inputId);
-            toggleInput(select, input);
-            if (select) {
-                select.addEventListener("change", () => toggleInput(select, input));
+        function fillSelect(select, items, selectedValue) {
+            if (!select) return;
+            const current = selectedValue || select.value;
+            select.innerHTML = "";
+            const empty = document.createElement("option");
+            empty.value = "";
+            empty.textContent = "Выберите значение";
+            select.appendChild(empty);
+            items.forEach((item) => {
+                const option = document.createElement("option");
+                option.value = item.id;
+                option.textContent = item.name;
+                if (String(item.id) === String(current)) {
+                    option.selected = true;
+                }
+                select.appendChild(option);
+            });
+            select.disabled = items.length === 0;
+        }
+
+        async function loadCabinets(roomId, selectedCabinetId) {
+            if (!roomId) {
+                fillSelect(cabinetSelect, []);
+                fillSelect(shelfSelect, []);
+                return;
             }
-        });
+            const response = await fetch(`{% url 'books:api_cabinets' %}?room_id=${roomId}`);
+            const data = await response.json();
+            fillSelect(cabinetSelect, data.results, selectedCabinetId);
+            if (!selectedCabinetId) {
+                fillSelect(shelfSelect, []);
+            }
+        }
+
+        async function loadShelves(cabinetId, selectedShelfId) {
+            if (!cabinetId) {
+                fillSelect(shelfSelect, []);
+                return;
+            }
+            const response = await fetch(`{% url 'books:api_shelves' %}?cabinet_id=${cabinetId}`);
+            const data = await response.json();
+            fillSelect(shelfSelect, data.results, selectedShelfId);
+        }
+
+        if (authorChoice) {
+            toggleAuthorCustom();
+            authorChoice.addEventListener("change", toggleAuthorCustom);
+        }
+
+        if (roomSelect) {
+            roomSelect.addEventListener("change", () => {
+                loadCabinets(roomSelect.value);
+            });
+        }
+
+        if (cabinetSelect) {
+            cabinetSelect.addEventListener("change", () => {
+                loadShelves(cabinetSelect.value);
+            });
+        }
+
+        if (roomSelect && roomSelect.value) {
+            loadCabinets(roomSelect.value, cabinetSelect ? cabinetSelect.value : null).then(() => {
+                if (cabinetSelect && cabinetSelect.value) {
+                    loadShelves(cabinetSelect.value, shelfSelect ? shelfSelect.value : null);
+                }
+            });
+        }
     })();
 </script>
 {% endblock %}

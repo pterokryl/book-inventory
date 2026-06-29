@@ -3,7 +3,10 @@
 {% block content %}
 <div class="header">
     <h1>Список книг</h1>
-    <a class="btn" href="{% url 'books:create' %}">+ Добавить книгу</a>
+    <div class="header-actions">
+        <a class="btn btn-secondary" href="{% url 'books:locations' %}">Помещения</a>
+        <a class="btn" href="{% url 'books:create' %}">+ Добавить книгу</a>
+    </div>
 </div>
 
 <details class="filters-panel" {% if has_active_filters %}open{% endif %}>
@@ -66,9 +69,9 @@
             <td>{{ book.author }}</td>
             <td>{{ book.title }}</td>
             <td>{{ book.publication_year }}</td>
-            <td>{{ book.room }}</td>
-            <td>{{ book.cabinet }}</td>
-            <td>{{ book.shelf }}</td>
+            <td>{{ book.shelf.cabinet.room.name }}</td>
+            <td>{{ book.shelf.cabinet.name }}</td>
+            <td>{{ book.shelf.name }}</td>
             <td>
                 {% if book.photo %}
                     <img class="thumb" src="{{ book.photo.url }}" alt="Фото {{ book.title }}">
@@ -94,4 +97,70 @@
         <a href="?page={{ page_obj.next_page_number }}&{{ query_params }}">Вперед</a>
     {% endif %}
 </div>
+
+<script>
+    (function () {
+        const roomSelect = document.getElementById("id_room");
+        const cabinetSelect = document.getElementById("id_cabinet");
+        const shelfSelect = document.getElementById("id_shelf");
+
+        function fillSelect(select, items, emptyLabel, selectedValue) {
+            if (!select) return;
+            const current = selectedValue || select.value;
+            select.innerHTML = "";
+            const empty = document.createElement("option");
+            empty.value = "";
+            empty.textContent = emptyLabel;
+            select.appendChild(empty);
+            items.forEach((item) => {
+                const option = document.createElement("option");
+                option.value = item.id;
+                option.textContent = item.name;
+                if (String(item.id) === String(current)) {
+                    option.selected = true;
+                }
+                select.appendChild(option);
+            });
+        }
+
+        async function loadCabinets(roomId, selectedCabinetId) {
+            if (!roomId) {
+                fillSelect(cabinetSelect, [], "Все");
+                fillSelect(shelfSelect, [], "Все");
+                return;
+            }
+            const response = await fetch(`{% url 'books:api_cabinets' %}?room_id=${roomId}`);
+            const data = await response.json();
+            fillSelect(cabinetSelect, data.results, "Все", selectedCabinetId);
+            if (!selectedCabinetId) {
+                fillSelect(shelfSelect, [], "Все");
+            }
+        }
+
+        async function loadShelves(cabinetId, selectedShelfId) {
+            if (!cabinetId) {
+                fillSelect(shelfSelect, [], "Все");
+                return;
+            }
+            const response = await fetch(`{% url 'books:api_shelves' %}?cabinet_id=${cabinetId}`);
+            const data = await response.json();
+            fillSelect(shelfSelect, data.results, "Все", selectedShelfId);
+        }
+
+        if (roomSelect) {
+            roomSelect.addEventListener("change", () => loadCabinets(roomSelect.value));
+        }
+        if (cabinetSelect) {
+            cabinetSelect.addEventListener("change", () => loadShelves(cabinetSelect.value));
+        }
+
+        if (roomSelect && roomSelect.value) {
+            loadCabinets(roomSelect.value, cabinetSelect ? cabinetSelect.value : null).then(() => {
+                if (cabinetSelect && cabinetSelect.value) {
+                    loadShelves(cabinetSelect.value, shelfSelect ? shelfSelect.value : null);
+                }
+            });
+        }
+    })();
+</script>
 {% endblock %}
