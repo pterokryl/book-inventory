@@ -88,7 +88,10 @@ class LocationListView(TemplateView):
         from django.db.models import Count, Prefetch
 
         context = super().get_context_data(**kwargs)
-        cabinets_qs = Cabinet.objects.annotate(shelf_count=Count("shelves")).order_by("name")
+        cabinets_qs = Cabinet.objects.annotate(
+            shelf_count=Count("shelves", distinct=True),
+            book_count=Count("shelves__books", distinct=True),
+        ).order_by("name")
         context["rooms"] = (
             Room.objects.prefetch_related(
                 Prefetch("cabinets", queryset=cabinets_qs.prefetch_related("shelves"))
