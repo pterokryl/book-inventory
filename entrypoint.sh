@@ -2,6 +2,8 @@
 set -e
 
 export DJANGO_SQLITE_PATH="${DJANGO_SQLITE_PATH:-/tmp/db.sqlite3}"
+export DJANGO_MEDIA_ROOT="${DJANGO_MEDIA_ROOT:-/tmp/media}"
+mkdir -p "$DJANGO_MEDIA_ROOT"
 
 if [ ! -f "$DJANGO_SQLITE_PATH" ] && [ -f /app/db.sqlite3 ]; then
   cp /app/db.sqlite3 "$DJANGO_SQLITE_PATH"

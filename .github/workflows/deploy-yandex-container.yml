@@ -97,4 +97,6 @@ jobs:
             --environment DJANGO_CSRF_TRUSTED_ORIGINS="$DJANGO_CSRF_TRUSTED_ORIGINS" \
             --environment DJANGO_SECURE_SSL_REDIRECT=False \
             --environment DJANGO_SQLITE_PATH=/tmp/db.sqlite3 \
+            --environment DJANGO_MEDIA_ROOT=/tmp/media \
+            --environment DJANGO_SERVE_MEDIA=True \
             --environment DATABASE_URL="$DATABASE_URL"
