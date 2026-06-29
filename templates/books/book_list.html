@@ -1,11 +1,14 @@
 {% extends "base.html" %}
 {% block title %}Список книг{% endblock %}
 {% block content %}
-<div class="header">
-    <h1>Список книг</h1>
+<div class="page-head">
+    <div>
+        <p class="eyebrow">Каталог</p>
+        <h1 class="page-title">Список книг</h1>
+    </div>
     <div class="header-actions">
         <a class="btn btn-secondary" href="{% url 'books:locations' %}">Помещения</a>
-        <a class="btn" href="{% url 'books:create' %}">+ Добавить книгу</a>
+        <a class="btn btn-primary" href="{% url 'books:create' %}">+ Добавить книгу</a>
     </div>
 </div>
 
@@ -43,7 +46,7 @@
             </div>
         </div>
         <div class="filters-actions">
-            <button class="btn" type="submit">Применить</button>
+            <button class="btn btn-primary" type="submit">Применить</button>
             <a class="btn btn-secondary" href="{% url 'books:list' %}">Сбросить</a>
         </div>
     </form>

@@ -1,51 +1,154 @@
 {% extends "base.html" %}
-{% block title %}Помещения{% endblock %}
+{% block title %}Структура хранения{% endblock %}
 {% block content %}
-<div class="header">
-    <h1>Помещения, шкафы и полки</h1>
+<div class="page-head">
+    <div>
+        <p class="eyebrow">Организация библиотеки</p>
+        <h1 class="page-title">Помещения, шкафы и полки</h1>
+        <p class="page-subtitle">Настройте иерархию хранения один раз — при добавлении книги выбирайте готовые значения из списка.</p>
+    </div>
     <div class="header-actions">
-        <a class="btn btn-secondary" href="{% url 'books:list' %}">К списку книг</a>
-        <a class="btn" href="{% url 'books:room_create' %}">+ Помещение</a>
+        <a class="btn btn-secondary" href="{% url 'books:list' %}">К книгам</a>
+        <a class="btn btn-primary" href="{% url 'books:room_create' %}">+ Помещение</a>
+    </div>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <span class="stat-label">Помещений</span>
+        <strong class="stat-value">{{ stats.rooms }}</strong>
+    </div>
+    <div class="stat-card">
+        <span class="stat-label">Шкафов</span>
+        <strong class="stat-value">{{ stats.cabinets }}</strong>
+    </div>
+    <div class="stat-card">
+        <span class="stat-label">Полок</span>
+        <strong class="stat-value">{{ stats.shelves }}</strong>
     </div>
 </div>
 
 {% if rooms %}
-    {% for room in rooms %}
-        <section class="location-block">
-            <div class="location-header">
-                <h2>{{ room.name }}</h2>
-                <div class="location-actions">
-                    <a href="{% url 'books:room_edit' room.pk %}">Редактировать</a>
-                    <a href="{% url 'books:cabinet_create' %}?room={{ room.pk }}">+ Шкаф</a>
-                </div>
-            </div>
+    <div class="toolbar">
+        <label class="search-field">
+            <span class="search-icon" aria-hidden="true">⌕</span>
+            <input id="location-search" class="filter-input" type="search" placeholder="Быстрый поиск по помещению, шкафу или полке">
+        </label>
+        <button type="button" class="btn btn-ghost btn-sm" id="expand-all">Развернуть все</button>
+        <button type="button" class="btn btn-ghost btn-sm" id="collapse-all">Свернуть все</button>
+    </div>
 
-            {% for cabinet in room.cabinets.all %}
-                <div class="location-subblock">
-                    <div class="location-header">
-                        <h3>Шкаф: {{ cabinet.name }}</h3>
-                        <div class="location-actions">
-                            <a href="{% url 'books:cabinet_edit' cabinet.pk %}">Редактировать</a>
-                            <a href="{% url 'books:shelf_create' %}?cabinet={{ cabinet.pk }}&room={{ room.pk }}">+ Полка</a>
+    <div class="location-tree" id="location-tree">
+        {% for room in rooms %}
+            <details class="loc-room" data-location-item open>
+                <summary class="loc-room-summary">
+                    <div class="loc-room-main">
+                        <span class="loc-icon" aria-hidden="true">🏠</span>
+                        <div>
+                            <h2 class="loc-title">{{ room.name }}</h2>
+                            <p class="loc-meta">{{ room.cabinet_count }} шкаф(ов)</p>
                         </div>
                     </div>
-                    <ul class="location-list">
-                        {% for shelf in cabinet.shelves.all %}
-                            <li>
-                                Полка: {{ shelf.name }}
-                                <a href="{% url 'books:shelf_edit' shelf.pk %}">Редактировать</a>
-                            </li>
-                        {% empty %}
-                            <li class="muted">Полок пока нет.</li>
-                        {% endfor %}
-                    </ul>
+                    <div class="loc-summary-actions" onclick="event.stopPropagation()">
+                        <a class="btn btn-ghost btn-sm" href="{% url 'books:room_edit' room.pk %}">Изменить</a>
+                        <a class="btn btn-primary btn-sm" href="{% url 'books:cabinet_create' %}?room={{ room.pk }}">+ Шкаф</a>
+                    </div>
+                </summary>
+
+                <div class="loc-room-body">
+                    {% for cabinet in room.cabinets.all %}
+                        <article class="loc-cabinet" data-location-item>
+                            <div class="loc-cabinet-head">
+                                <div class="loc-cabinet-main">
+                                    <span class="loc-icon loc-icon-sm" aria-hidden="true">🗄</span>
+                                    <div>
+                                        <h3 class="loc-subtitle">{{ cabinet.name }}</h3>
+                                        <p class="loc-meta">{{ cabinet.shelf_count }} полок</p>
+                                    </div>
+                                </div>
+                                <div class="loc-cabinet-actions">
+                                    <a class="btn btn-ghost btn-sm" href="{% url 'books:cabinet_edit' cabinet.pk %}">Изменить</a>
+                                    <a class="btn btn-secondary btn-sm" href="{% url 'books:shelf_create' %}?cabinet={{ cabinet.pk }}&room={{ room.pk }}">+ Полка</a>
+                                </div>
+                            </div>
+
+                            <div class="chip-list">
+                                {% for shelf in cabinet.shelves.all %}
+                                    <a class="chip" href="{% url 'books:shelf_edit' shelf.pk %}" data-location-item>
+                                        <span>{{ shelf.name }}</span>
+                                        <span class="chip-action">✎</span>
+                                    </a>
+                                {% empty %}
+                                    <p class="empty-inline">Полок пока нет. <a href="{% url 'books:shelf_create' %}?cabinet={{ cabinet.pk }}&room={{ room.pk }}">Добавить первую</a></p>
+                                {% endfor %}
+                            </div>
+                        </article>
+                    {% empty %}
+                        <div class="empty-panel">
+                            <p>В этом помещении ещё нет шкафов.</p>
+                            <a class="btn btn-primary btn-sm" href="{% url 'books:cabinet_create' %}?room={{ room.pk }}">Добавить шкаф</a>
+                        </div>
+                    {% endfor %}
                 </div>
-            {% empty %}
-                <p class="muted">Шкафов пока нет.</p>
-            {% endfor %}
-        </section>
-    {% endfor %}
+            </details>
+        {% endfor %}
+    </div>
+    <p class="search-empty" id="search-empty" hidden>Ничего не найдено. Попробуйте другой запрос.</p>
 {% else %}
-    <p>Помещений пока нет. <a href="{% url 'books:room_create' %}">Добавьте первое помещение</a>.</p>
+    <div class="empty-state">
+        <div class="empty-state-icon" aria-hidden="true">📚</div>
+        <h2>Пока нет структуры хранения</h2>
+        <p>Сначала создайте помещение, затем добавьте в него шкафы и полки.</p>
+        <a class="btn btn-primary" href="{% url 'books:room_create' %}">Создать первое помещение</a>
+    </div>
 {% endif %}
+
+<script>
+    (function () {
+        const searchInput = document.getElementById("location-search");
+        const tree = document.getElementById("location-tree");
+        const searchEmpty = document.getElementById("search-empty");
+        const expandAll = document.getElementById("expand-all");
+        const collapseAll = document.getElementById("collapse-all");
+
+        function roomBlocks() {
+            return tree ? Array.from(tree.querySelectorAll(".loc-room")) : [];
+        }
+
+        if (searchInput && tree) {
+            searchInput.addEventListener("input", () => {
+                const query = searchInput.value.trim().toLowerCase();
+                let visibleCount = 0;
+
+                roomBlocks().forEach((room) => {
+                    const items = Array.from(room.querySelectorAll("[data-location-item]"));
+                    const roomText = room.textContent.toLowerCase();
+                    const match = !query || roomText.includes(query);
+
+                    room.hidden = !match;
+                    if (match) {
+                        visibleCount += 1;
+                        if (query) room.open = true;
+                    }
+                });
+
+                if (searchEmpty) {
+                    searchEmpty.hidden = visibleCount > 0 || !query;
+                }
+            });
+        }
+
+        if (expandAll) {
+            expandAll.addEventListener("click", () => {
+                roomBlocks().forEach((room) => { room.open = true; });
+            });
+        }
+
+        if (collapseAll) {
+            collapseAll.addEventListener("click", () => {
+                roomBlocks().forEach((room) => { room.open = false; });
+            });
+        }
+    })();
+</script>
 {% endblock %}

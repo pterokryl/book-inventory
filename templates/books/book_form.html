@@ -1,14 +1,18 @@
 {% extends "base.html" %}
 {% block title %}Карточка книги{% endblock %}
 {% block content %}
-<div class="header">
-    <h1>Карточка книги</h1>
-    <a class="btn" href="{% url 'books:list' %}">К списку</a>
+<div class="page-head">
+    <div>
+        <p class="eyebrow"><a class="link-muted" href="{% url 'books:list' %}">Каталог</a></p>
+        <h1 class="page-title">Карточка книги</h1>
+    </div>
+    <a class="btn btn-secondary" href="{% url 'books:list' %}">К списку</a>
 </div>
 
-<p class="hint">Сначала добавьте помещения, шкафы и полки на странице <a href="{% url 'books:locations' %}">расположения</a>.</p>
+<p class="hint">Сначала добавьте помещения, шкафы и полки на странице <a href="{% url 'books:locations' %}">структуры хранения</a>.</p>
 
-<form method="post" enctype="multipart/form-data">
+<div class="form-card form-card-wide">
+<form method="post" enctype="multipart/form-data" class="form-stack">
     {% csrf_token %}
     <div class="form-grid">
         <div class="form-field">
@@ -56,8 +60,9 @@
         </div>
     </div>
 
-    <button class="btn" type="submit">Сохранить</button>
+    <button class="btn btn-primary" type="submit">Сохранить</button>
 </form>
+</div>
 
 {{ form.author }}
 

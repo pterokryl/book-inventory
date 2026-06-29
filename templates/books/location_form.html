@@ -1,20 +1,29 @@
 {% extends "base.html" %}
 {% block title %}{{ title }}{% endblock %}
 {% block content %}
-<div class="header">
-    <h1>{{ title }}</h1>
-    <a class="btn btn-secondary" href="{% url 'books:locations' %}">Назад</a>
+<div class="page-head">
+    <div>
+        <p class="eyebrow"><a class="link-muted" href="{% url 'books:locations' %}">Структура хранения</a></p>
+        <h1 class="page-title">{{ title }}</h1>
+    </div>
+    <a class="btn btn-secondary" href="{% url 'books:locations' %}">Отмена</a>
 </div>
 
-<form method="post">
-    {% csrf_token %}
-    {% for field in form %}
-        <div class="form-field">
-            <label class="filter-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-            {{ field }}
-            {{ field.errors }}
+<div class="form-card">
+    <form method="post" class="form-stack">
+        {% csrf_token %}
+        {% for field in form %}
+            <div class="form-field">
+                <label class="filter-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}<p class="field-help">{{ field.help_text }}</p>{% endif %}
+                {{ field.errors }}
+            </div>
+        {% endfor %}
+        <div class="form-actions">
+            <button class="btn btn-primary" type="submit">Сохранить</button>
+            <a class="btn btn-ghost" href="{% url 'books:locations' %}">Назад</a>
         </div>
-    {% endfor %}
-    <button class="btn" type="submit">Сохранить</button>
-</form>
+    </form>
+</div>
 {% endblock %}

@@ -85,8 +85,22 @@ class LocationListView(TemplateView):
     template_name = "books/location_list.html"
 
     def get_context_data(self, **kwargs):
+        from django.db.models import Count, Prefetch
+
         context = super().get_context_data(**kwargs)
-        context["rooms"] = Room.objects.prefetch_related("cabinets__shelves").order_by("name")
+        cabinets_qs = Cabinet.objects.annotate(shelf_count=Count("shelves")).order_by("name")
+        context["rooms"] = (
+            Room.objects.prefetch_related(
+                Prefetch("cabinets", queryset=cabinets_qs.prefetch_related("shelves"))
+            )
+            .annotate(cabinet_count=Count("cabinets", distinct=True))
+            .order_by("name")
+        )
+        context["stats"] = {
+            "rooms": Room.objects.count(),
+            "cabinets": Cabinet.objects.count(),
+            "shelves": Shelf.objects.count(),
+        }
         return context
 
 
